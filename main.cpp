@@ -13,9 +13,115 @@ Your program should be called main.cpp and should compile using the g++ command 
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <queue>
+#include <climits>
 using namespace std;
 using ll = long long;
 
+struct Node
+{
+  int i, j, g, bound;
+  bool operator<(const Node &otro) const { return bound > otro.bound; }
+};
+
+int h(int i, int j, int M, int N)
+{
+  return (M - 1 - i) + (N - 1 - j);
+}
+
+void imprimir(vector<vector<int>> &m)
+{
+  int M = m.size(), N = m[0].size();
+  for (int i = 0; i < M; i++)
+  {
+    for (int j = 0; j < N; j++)
+    {
+      if (j)
+        cout << " ";
+      cout << m[i][j];
+    }
+    cout << "\n";
+  }
+}
+
+bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res)
+{
+  int M = laberinto.size();
+  int N = laberinto[0].size();
+
+  if (laberinto[0][0] == 0 || laberinto[M - 1][N - 1] == 0)
+    return false;
+
+  // g[i][j] = least number of steps known to get to (i,j)
+  vector<vector<int>> g(M, vector<int>(N, INT_MAX));
+
+  // father[i][j] = which square was before
+  vector<vector<pair<int, int>>> father(M, vector<pair<int, int>>(N, {-1, -1}));
+
+  priority_queue<Node> alive;
+  g[0][0] = 0;
+  alive.push({0, 0, 0, h(0, 0, M, N)});
+
+  // Best solution so far
+  int best = INT_MAX;
+
+  // 4 directions
+  int di[4] = {1, 0, -1, 0};
+  int dj[4] = {0, 1, 0, -1};
+
+  while (!alive.empty())
+  {
+    Node n = alive.top();
+    alive.pop();
+
+    if (n.bound >= best)
+      continue;
+
+    if (n.g > g[n.i][n.j])
+      continue;
+
+    if (n.i == M - 1 && n.j == N - 1)
+    {
+      best = n.g;
+      continue;
+    }
+
+    // Branching
+    for (int k = 0; k < 4; k++)
+    {
+      int ni = n.i + di[k];
+      int nj = n.j + dj[k];
+
+      if (ni < 0 || ni >= M || nj < 0 || nj >= N)
+        continue;
+      if (laberinto[ni][nj] == 0)
+        continue;
+
+      int ng = n.g + 1;
+      int nbound = ng + h(ni, nj, M, N);
+
+      if (nbound < best && ng < g[ni][nj])
+      {
+        g[ni][nj] = ng;
+        father[ni][nj] = {n.i, n.j};
+        alive.push({ni, nj, ng, nbound});
+      }
+    }
+  }
+
+  if (best == INT_MAX)
+    return false;
+
+  int i = M - 1, j = N - 1;
+  while (i != -1)
+  {
+    res[i][j] = 1;
+    auto p = father[i][j];
+    i = p.first;
+    j = p.second;
+  }
+  return true;
+}
 
 bool backtrack(int i, int j, vector<vector<int>> &laberinto, vector<vector<int>> &res)
 {
@@ -47,8 +153,6 @@ bool backtrack(int i, int j, vector<vector<int>> &laberinto, vector<vector<int>>
   return false;
 }
 
-
-
 int main()
 {
 
@@ -70,26 +174,34 @@ int main()
     }
   }
 
+  if (laberinto[0][0] == 0 || laberinto[M - 1][N - 1] == 0)
+  {
+    cout << "Invalid input";
+    return 0;
+  }
+
   vector<vector<int>> res(M, vector<int>(N, 0));
 
   cout << "\nOutput : " << endl;
 
   if (backtrack(0, 0, laberinto, res))
   {
-    for (int i = 0; i < M; i++)
-    {
-      for (int j = 0; j < N; j++)
-      {
-        cout << res[i][j] << " ";
-      }
-      cout << "\n";
-    }
+    imprimir(res);
     cout << endl;
   }
   else
   {
-    cout << "No backtrack solution";
+    cout << "No backtrack solution" << endl;
   }
 
+  if (branchAndBound(laberinto, res))
+  {
+    imprimir(res);
+  }
+  else
+  {
+    cout << "No branch and bound solution";
+  }
 
+  return 0;
 }
