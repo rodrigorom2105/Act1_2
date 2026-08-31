@@ -55,7 +55,7 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res)
   // g[i][j] = least number of steps known to get to (i,j)
   vector<vector<int>> g(M, vector<int>(N, INT_MAX));
 
-  // father[i][j] = which square was before
+  // father[i][j] = which square was passed before that square
   vector<vector<pair<int, int>>> father(M, vector<pair<int, int>>(N, {-1, -1}));
 
   priority_queue<Node> alive;
@@ -74,12 +74,15 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res)
     Node n = alive.top();
     alive.pop();
 
+    // Prune if expected solution for the branch is worse or the same that the best recorded
     if (n.bound >= best)
       continue;
 
+    // Prune if required more steps than the minimum recorded for that square
     if (n.g > g[n.i][n.j])
       continue;
 
+    // Record best solution and prune the branch
     if (n.i == M - 1 && n.j == N - 1)
     {
       best = n.g;
@@ -180,13 +183,13 @@ int main()
     return 0;
   }
 
-  vector<vector<int>> res(M, vector<int>(N, 0));
-
   cout << "\nOutput : " << endl;
 
-  if (backtrack(0, 0, laberinto, res))
+  vector<vector<int>> solutionBacktracking(M, vector<int>(N, 0));
+
+  if (backtrack(0, 0, laberinto, solutionBacktracking))
   {
-    imprimir(res);
+    imprimir(solutionBacktracking);
     cout << endl;
   }
   else
@@ -194,9 +197,11 @@ int main()
     cout << "No backtrack solution" << endl;
   }
 
-  if (branchAndBound(laberinto, res))
+  vector<vector<int>> solutionBranchAndBound(M, vector<int>(N, 0));
+
+  if (branchAndBound(laberinto, solutionBranchAndBound))
   {
-    imprimir(res);
+    imprimir(solutionBranchAndBound);
   }
   else
   {
