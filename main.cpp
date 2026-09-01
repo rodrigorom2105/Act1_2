@@ -15,6 +15,17 @@ int getDistance(int i, int j, int M, int N) {
 	return (M - 1 - i) + (N - 1 - j);
 }
 
+void reconstructPath(int rows, int cols, vector<vector<pair<int, int>>> &father, vector<vector<int>> &solution) {
+	int i = rows - 1;
+	int j = cols - 1;
+	while (i != -1) {
+		solution[i][j] = 1;
+		auto p = father[i][j];
+		i = p.first;
+		j = p.second;
+	}
+}
+
 void printMatrix(vector<vector<int>> &m) {
 	int M = m.size();
 	int N = m[0].size();
@@ -85,14 +96,7 @@ bool branchAndBound(vector<vector<int>> &maze, vector<vector<int>> &solution) {
 	if (best == INT_MAX)
 		return false;
 
-	int i = M - 1;
-	int j = N - 1;
-	while (i != -1) {
-		solution[i][j] = 1;
-		auto p = father[i][j];
-		i = p.first;
-		j = p.second;
-	}
+	reconstructPath(M, N, father, solution);
 	return true;
 }
 
@@ -109,7 +113,7 @@ bool backtrack(int i, int j, vector<vector<int>> &maze, vector<vector<int>> &sol
 		return false;
 
 	solution[i][j] = 1;
-	if ((i == rows - 1) && (j == cols - 1))
+	if (i == rows - 1 && j == cols - 1)
 		return true;
 
 	if (backtrack(i + 1, j, maze, solution))
@@ -131,8 +135,8 @@ int main() {
 
 	cin.tie(nullptr);
 
-	int M;
-	int N;
+	int M = 0;
+	int N = 0;
 	cout << "Input: " << endl;
 	cin >> M >> N;
 
