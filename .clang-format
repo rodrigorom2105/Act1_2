@@ -2,6 +2,8 @@ BasedOnStyle: LLVM
 BreakBeforeBraces: Attach
 UseTab: ForIndentation
 IndentWidth: 4
+TabWidth: 4
+AllowShortBlocksOnASingleLine: Never
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
