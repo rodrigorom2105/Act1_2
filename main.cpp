@@ -33,11 +33,11 @@ struct Node {
     }
 };
 
-int h(int i, int j, int M, int N) {
+int getDistance(int i, int j, int M, int N) {
     return (M - 1 - i) + (N - 1 - j);
 }
 
-void imprimir(vector<vector<int>> &m) {
+void printMatrix(vector<vector<int>> &m) {
     int M = m.size();
     int N = m[0].size();
     for (int i = 0; i < M; i++) {
@@ -57,21 +57,15 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res) {
     if (laberinto[0][0] == 0 || laberinto[M - 1][N - 1] == 0)
 	return false;
 
-    // g[i][j] = least number of steps known to get to (i,j)
     vector<vector<int>> g(M, vector<int>(N, INT_MAX));
-
-    // father[i][j] = which square was passed before that square
-    vector<vector<pair<int, int>>> father(M,
-                                          vector<pair<int, int>>(N, {-1, -1}));
+    vector<vector<pair<int, int>>> father(M, vector<pair<int, int>>(N, {-1, -1}));
 
     priority_queue<Node> alive;
     g[0][0] = 0;
-    alive.push({0, 0, 0, h(0, 0, M, N)});
+    alive.push({0, 0, 0, getDistance(0, 0, M, N)});
 
-    // Best solution so far
     int best = INT_MAX;
 
-    // 4 directions
     int di[4] = {1, 0, -1, 0};
     int dj[4] = {0, 1, 0, -1};
 
@@ -79,23 +73,17 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res) {
 	Node n = alive.top();
 	alive.pop();
 
-	// Prune if expected solution for the branch is worse or the same that
-	// the best recorded
 	if (n.bound >= best)
 	    continue;
 
-	// Prune if required more steps than the minimum recorded for that
-	// square
 	if (n.g > g[n.i][n.j])
 	    continue;
 
-	// Record best solution and prune the branch
 	if (n.i == M - 1 && n.j == N - 1) {
 	    best = n.g;
 	    continue;
 	}
 
-	// Branching
 	for (int k = 0; k < 4; k++) {
 	    int ni = n.i + di[k];
 	    int nj = n.j + dj[k];
@@ -106,7 +94,7 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res) {
 		continue;
 
 	    int ng = n.g + 1;
-	    int nbound = ng + h(ni, nj, M, N);
+	    int nbound = ng + getDistance(ni, nj, M, N);
 
 	    if (nbound < best && ng < g[ni][nj]) {
 		g[ni][nj] = ng;
@@ -130,8 +118,7 @@ bool branchAndBound(vector<vector<int>> &laberinto, vector<vector<int>> &res) {
     return true;
 }
 
-bool backtrack(int i, int j, vector<vector<int>> &laberinto,
-               vector<vector<int>> &res) {
+bool backtrack(int i, int j, vector<vector<int>> &laberinto, vector<vector<int>> &res) {
     int M = laberinto.size();
     int N = laberinto[0].size();
     if (i < 0 || i >= M || j < 0 || j >= N)
@@ -189,7 +176,7 @@ int main() {
     vector<vector<int>> solutionBacktracking(M, vector<int>(N, 0));
 
     if (backtrack(0, 0, laberinto, solutionBacktracking)) {
-	imprimir(solutionBacktracking);
+	printMatrix(solutionBacktracking);
 	cout << endl;
     } else {
 	cout << "No backtrack solution" << endl;
@@ -198,7 +185,7 @@ int main() {
     vector<vector<int>> solutionBranchAndBound(M, vector<int>(N, 0));
 
     if (branchAndBound(laberinto, solutionBranchAndBound)) {
-	imprimir(solutionBranchAndBound);
+	printMatrix(solutionBranchAndBound);
     } else {
 	cout << "No branch and bound solution";
     }
