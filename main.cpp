@@ -46,6 +46,26 @@ void printMatrix(vector<vector<int>> &m) {
 	cout << "\n";
 }
 
+/*
+Branch and bound. Let S = M * N, the number of squares of the maze.
+
+TIME: O(S log S)
+Creating minSteps and previousSquare costs O(S).
+A square only enters the heap when it is reached in fewer steps than ever before, so a push
+always needs an improvement of minSteps. The bound (steps taken + Manhattan distance to the
+goal) never overestimates the real length of a path, so the first time a square is taken out
+of the heap it already holds the lowest amount of steps to reach it, and after that only its
+4 neighbours can improve it. That leaves at most 4 pushes per square, so the loop runs O(S)
+times and the heap never holds more than O(S) Nodes, which makes every push and every pop
+cost O(log S). Everything inside the loop is O(1): reading the top of the heap, comparing the
+bound against best, and branching to the 4 directions.
+Rebuilding the path at the end costs O(S), because the path cannot be longer than the maze.
+That gives O(S) + O(S log S) + O(S) = O(S log S).
+
+SPACE: O(S)
+minSteps is one int per square, previousSquare is one pair per square, and the heap holds at
+most O(S) Nodes. There is no recursion, so nothing else grows with the size of the maze.
+*/
 bool branchAndBound(vector<vector<int>> &maze, vector<vector<int>> &solution) {
 	int rows = maze.size();
 	int cols = maze[0].size();
@@ -125,6 +145,26 @@ bool branchAndBound(vector<vector<int>> &maze, vector<vector<int>> &solution) {
 	return true;
 }
 
+/*
+Backtracking. Let S = M * N, the number of squares of the maze.
+
+TIME: O(3^S) in the worst case, O(S) in the best case
+The work of a single call is O(1): it checks the boundaries, the wall and the mark, and then
+calls itself on the 4 neighbours. So the cost is the number of calls made.
+A call marks its square before branching, and the square it came from is still marked, so only
+3 of its 4 calls can go forward. A path never repeats a square, so the recursion goes at most S
+levels deep. A tree with branching 3 and depth S has O(3^S) Nodes, which is the worst case.
+The reason it can grow that much is the unmarking: when a branch fails the square is set back to
+0, so it is free again and the same square can be walked over once per route that reaches it.
+In other words the technique ends up trying every path that does not repeat a square, and it
+only stops early because it returns as soon as the first path reaches the goal.
+The best case is O(S), when the first directions it tries already lead to the goal.
+
+SPACE: O(S)
+The only structure that grows is the recursion stack, which holds one frame per square of the
+path being tried, and a path has at most S squares. The maze and the solution matrix are O(S)
+too, but they belong to the caller and are passed by reference, not copied on each call.
+*/
 bool backtrack(int i, int j, vector<vector<int>> &maze, vector<vector<int>> &solution) {
 	int rows = maze.size();
 	int cols = maze[0].size();
