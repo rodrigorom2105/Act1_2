@@ -1,6 +1,7 @@
 #include <climits>
 #include <iostream>
 #include <queue>
+#include <string>
 #include <vector>
 using namespace std;
 
@@ -75,11 +76,13 @@ bool branchAndBound(vector<vector<int>> &maze, vector<vector<int>> &solution) {
 		Node current = alive.top();
 		alive.pop();
 
-		// If the best possible path is worse than the best solution found, there are no more Nodes to review. Prune and construct path
+		// If the best possible path is worse than the best solution found, there are no more Nodes to review.
+		// Prune and construct path
 		if (current.bound >= best)
 			break;
 
-		// If the number of steps it took to reach the Node is greater that the minimum steps needed to reach that Node, prune that branch
+		// If the number of steps it took to reach the Node is greater that the minimum steps needed to reach that Node,
+		// prune that branch
 		if (current.steps > minSteps[current.i][current.j])
 			continue;
 
@@ -160,51 +163,89 @@ bool backtrack(int i, int j, vector<vector<int>> &maze, vector<vector<int>> &sol
 	return false;
 }
 
-int main() {
+// Solves the same maze with both techniques and prints the maze followed by both solutions
+void runTest(const string &title, vector<vector<int>> maze) {
+	int M = maze.size();
+	int N = maze[0].size();
 
-	ios::sync_with_stdio(false);
-
-	// Test 1
-
-	cout << "Test 1: Base case" << endl;
-	
-	int M = 4;
-	int N = 4;
-
-	vector<vector<int>> maze = {
-	    {1, 0, 0, 0},
-	    {1, 1, 0, 1},
-	    {0, 1, 0, 0},
-	    {1, 1, 1, 1}};
-
+	cout << title << endl;
 	printMatrix(maze);
-	
+
 	vector<vector<int>> solutionBacktracking(M, vector<int>(N, 0));
 
 	if (backtrack(0, 0, maze, solutionBacktracking)) {
 		cout << "Backtrack:" << endl;
 		printMatrix(solutionBacktracking);
 	} else {
-		cout << "No backtrack solution" << endl;
+		cout << "No backtrack solution\n"
+		     << endl;
 	}
 
 	vector<vector<int>> solutionBranchAndBound(M, vector<int>(N, 0));
 
 	if (branchAndBound(maze, solutionBranchAndBound)) {
-		cout << "Branch & Bound" << endl;
+		cout << "Branch & Bound:" << endl;
 		printMatrix(solutionBranchAndBound);
 	} else {
-		cout << "No B&B solution";
+		cout << "No B&B solution\n"
+		     << endl;
 	}
+}
 
-	// Test 2
-	/*
-	1 1 1 1 1
-	1 0 0 0 1
-	1 0 1 1 1
-	1 0 1 0 1
-	1 1 1 0 1
-	*/
+int main() {
+
+	ios::sync_with_stdio(false);
+
+	// Test 1: base case. There is a single path from (0,0) to (M-1,N-1), so both techniques
+	// have to return exactly the same solution matrix
+	runTest("Test 1: Base case",
+	        {{1, 0, 0, 0},
+	         {1, 1, 0, 1},
+	         {0, 1, 0, 0},
+	         {1, 1, 1, 1}});
+
+	// Test 2: two possible paths of different length.
+	// Backtracking tries the directions in a fixed order and goes down first, so it takes the
+	// long way around the walls and stops at the first path it finds (12 steps).
+	// B&B expands the alive Node with the lowest bound first, so it goes along the borders and
+	// returns the shortest path (8 steps). Same maze, both solutions valid, only B&B is optimal
+	runTest("Test 2: First path found vs optimal path",
+	        {{1, 1, 1, 1, 1},
+	         {1, 0, 0, 0, 1},
+	         {1, 0, 1, 1, 1},
+	         {1, 0, 1, 0, 1},
+	         {1, 1, 1, 0, 1}});
+
+	// Test 3: a corridor down the first column that leads into a closed room, and the only way
+	// out of the maze along the first row and the last column. Both techniques return the same
+	// path, so what this test shows is the work each one does to find it.
+	// Backtracking goes down first, so it walks into the room, explores it, and only gives up
+	// after trying every way of walking through it; then it unmarks all of those squares and
+	// comes back to (0,0) to try the row on the right. The printed solution shows that none of
+	// the squares of the room stayed marked.
+	// B&B also looks at the room, because the Manhattan bound cannot see the walls, but the
+	// minSteps matrix keeps every square from being expanded more than once, so it walks over
+	// the room a single time instead of once per way of crossing it
+	runTest("Test 3: Closed room, same path with very different work",
+	        {{1, 1, 1, 1, 1, 1, 1},
+	         {1, 0, 0, 0, 0, 0, 1},
+	         {1, 0, 0, 0, 0, 0, 1},
+	         {1, 1, 1, 1, 0, 0, 1},
+	         {1, 1, 1, 1, 0, 0, 1},
+	         {1, 1, 1, 1, 0, 0, 1},
+	         {1, 1, 1, 1, 0, 0, 1}});
+
+	// Test 4: the end square is walkable but walled off, so no path exists.
+	// Backtracking has to visit every square reachable from (0,0) and undo every mark before
+	// returning false from the first call. B&B empties the queue of alive Nodes without ever
+	// reaching (M-1,N-1), so best stays at INT_MAX and it also reports no solution
+	runTest("Test 4: Unreachable end square",
+	        {{1, 1, 1, 1, 1, 1},
+	         {1, 0, 0, 0, 0, 1},
+	         {1, 1, 1, 1, 0, 1},
+	         {1, 0, 0, 1, 0, 1},
+	         {1, 1, 1, 1, 0, 0},
+	         {1, 1, 1, 0, 0, 1}});
 
 	return 0;
 }
