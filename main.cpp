@@ -196,19 +196,23 @@ int main() {
 
 	ios::sync_with_stdio(false);
 
-	// Test 1: base case. There is a single path from (0,0) to (M-1,N-1), so both techniques
-	// have to return exactly the same solution matrix
+	/*
+	Test 1: base case. There is a single path from (0,0) to (M-1,N-1), so both techniques
+	have to return exactly the same solution matrix
+	*/
 	runTest("Test 1: Base case",
 	        {{1, 0, 0, 0},
 	         {1, 1, 0, 1},
 	         {0, 1, 0, 0},
 	         {1, 1, 1, 1}});
 
-	// Test 2: two possible paths of different length.
-	// Backtracking tries the directions in a fixed order and goes down first, so it takes the
-	// long way around the walls and stops at the first path it finds (12 steps).
-	// B&B expands the alive Node with the lowest bound first, so it goes along the borders and
-	// returns the shortest path (8 steps). Same maze, both solutions valid, only B&B is optimal
+	/*
+	Test 2: two possible paths of different length.
+	Backtracking tries the directions in a fixed order and goes down first, so it takes the
+	long way around the walls and stops at the first path it finds (12 steps).
+	B&B expands the alive Node with the lowest bound first, so it goes along the borders and
+	returns the shortest path (8 steps). Same maze, both solutions valid, B&B is optimal
+	*/
 	runTest("Test 2: First path found vs optimal path",
 	        {{1, 1, 1, 1, 1},
 	         {1, 0, 0, 0, 1},
@@ -216,16 +220,18 @@ int main() {
 	         {1, 0, 1, 0, 1},
 	         {1, 1, 1, 0, 1}});
 
-	// Test 3: a corridor down the first column that leads into a closed room, and the only way
-	// out of the maze along the first row and the last column. Both techniques return the same
-	// path, so what this test shows is the work each one does to find it.
-	// Backtracking goes down first, so it walks into the room, explores it, and only gives up
-	// after trying every way of walking through it; then it unmarks all of those squares and
-	// comes back to (0,0) to try the row on the right. The printed solution shows that none of
-	// the squares of the room stayed marked.
-	// B&B also looks at the room, because the Manhattan bound cannot see the walls, but the
-	// minSteps matrix keeps every square from being expanded more than once, so it walks over
-	// the room a single time instead of once per way of crossing it
+	/*
+	Test 3: a corridor down the first column that leads into a closed room, and the only way
+	out of the maze along the first row and the last column. Both techniques return the same
+	path, so what this test shows is the work each one does to find it.
+	Backtracking goes down first, so it walks into the room, explores it, and only gives up
+	after trying every way of walking through it; then it unmarks all of those squares and
+	comes back to (0,0) to try the row on the right. The printed solution shows that none of
+	the squares of the room stayed marked.
+	B&B also looks at the room, because the Manhattan bound cannot see the walls, but the
+	minSteps matrix keeps every square from being expanded more than once, so it walks over
+	the room a single time instead of once per way of crossing it
+	*/
 	runTest("Test 3: Closed room, same path with very different work",
 	        {{1, 1, 1, 1, 1, 1, 1},
 	         {1, 0, 0, 0, 0, 0, 1},
@@ -235,10 +241,12 @@ int main() {
 	         {1, 1, 1, 1, 0, 0, 1},
 	         {1, 1, 1, 1, 0, 0, 1}});
 
-	// Test 4: the end square is walkable but walled off, so no path exists.
-	// Backtracking has to visit every square reachable from (0,0) and undo every mark before
-	// returning false from the first call. B&B empties the queue of alive Nodes without ever
-	// reaching (M-1,N-1), so best stays at INT_MAX and it also reports no solution
+	/*
+	Test 4: the end square is walkable but walled off, so no path exists.
+	Backtracking has to visit every square reachable from (0,0) and undo every mark before
+	returning false from the first call. B&B empties the queue of alive Nodes without ever
+	reaching (M-1,N-1), so best stays at INT_MAX and it also reports no solution
+	*/
 	runTest("Test 4: Unreachable end square",
 	        {{1, 1, 1, 1, 1, 1},
 	         {1, 0, 0, 0, 0, 1},
